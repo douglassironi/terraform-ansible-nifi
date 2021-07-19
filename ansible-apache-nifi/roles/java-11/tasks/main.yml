@@ -1,0 +1,4 @@
+- name: install the latest version of Java 11
+  yum:
+    name: java-11-openjdk.x86_64
+    state: latest

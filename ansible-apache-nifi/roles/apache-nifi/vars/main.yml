@@ -1,0 +1,19 @@
+# general vars
+DESTINATION_PATH: /opt/nifi
+USER_NIFI: nifi
+NIFI_VERSION: 1.13.2
+# URL_REPO: https://archive.apache.org/dist/nifi/{{NIFI_VERSION}}
+URL_REPO: http://sr.sironi.local/Files
+NIFI_PATH: /opt/nifi/nifi-{{NIFI_VERSION}}
+NIFI_TOOLKIT_PATH: /opt/nifi/nifi-toolkit-{{NIFI_VERSION}}
+NIFI_URL: "{{URL_REPO}}/nifi-{{NIFI_VERSION}}-bin.tar.gz"
+NIFI_TOOLKIT_URL: "{{URL_REPO}}/nifi-toolkit-{{NIFI_VERSION}}-bin.tar.gz"
+NIFI_BIN: "{{NIFI_PATH}}/bin"
+LDAP_USERNAME_AUTH: CN=Douglas Piero Sironi,DC=sironi,DC=local
+LDAP_INIT_ADMIN: sironi
+LDAP_PASS_AUTH: 
+LDAP_URL: ldap://vm-ldap.sironi.local:389
+LDAP_USER_SEARCH_BASE: OU=Users,DC=sironi,DC=local
+TOKEN_TLS: Kiaksielakso2398j3n+
+CLUSTER_DOMAIN: .sironi.local
+WEB_PROXY: nifi.saas.sironi.local

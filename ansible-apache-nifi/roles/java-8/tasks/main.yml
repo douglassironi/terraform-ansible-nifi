@@ -1,0 +1,4 @@
+- name: install the latest version of Java 1.8
+  yum:
+    name: java-1.8.0-openjdk.x86_64
+    state: latest

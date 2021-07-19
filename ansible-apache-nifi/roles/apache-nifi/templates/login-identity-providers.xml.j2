@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<loginIdentityProviders>
+    <provider>
+        <identifier>ldap-provider</identifier>
+        <class>org.apache.nifi.ldap.LdapProvider</class>
+        <property name="Authentication Strategy">SIMPLE</property>
+
+        <property name="Manager DN">{{LDAP_USERNAME_AUTH}}</property>
+        <property name="Manager Password">{{LDAP_PASS_AUTH}}</property>
+
+        <property name="TLS - Keystore"></property>
+        <property name="TLS - Keystore Password"></property>
+        <property name="TLS - Keystore Type"></property>
+        <property name="TLS - Truststore"></property>
+        <property name="TLS - Truststore Password"></property>
+        <property name="TLS - Truststore Type"></property>
+        <property name="TLS - Client Auth"></property>
+        <property name="TLS - Protocol"></property>
+        <property name="TLS - Shutdown Gracefully"></property>
+        
+        <property name="Referral Strategy">FOLLOW</property>
+        <property name="Connect Timeout">10 secs</property>
+        <property name="Read Timeout">10 secs</property>
+
+        <property name="Url">{{LDAP_URL}}</property>
+        <property name="User Search Base">{{LDAP_USER_SEARCH_BASE}}</property>
+        <property name="User Search Filter">sAMAccountName={0}</property>
+
+        <property name="Identity Strategy">USE_USERNAME</property>
+        <property name="Authentication Expiration">12 hours</property>
+    </provider>
+  
+    <!--
+        Identity Provider for users logging in with username/password against a Kerberos KDC server.
+
+        'Default Realm' - Default realm to provide when user enters incomplete user principal (i.e. NIFI.APACHE.ORG).
+        'Authentication Expiration' - The duration of how long the user authentication is valid for. If the user never logs out, they will be required to log back in following this duration.
+    -->
+    <!-- To enable the kerberos-provider remove 2 lines. This is 1 of 2.
+    <provider>
+        <identifier>kerberos-provider</identifier>
+        <class>org.apache.nifi.kerberos.KerberosProvider</class>
+        <property name="Default Realm">NIFI.APACHE.ORG</property>
+        <property name="Authentication Expiration">12 hours</property>
+    </provider>
+    To enable the kerberos-provider remove 2 lines. This is 2 of 2. -->
+</loginIdentityProviders>

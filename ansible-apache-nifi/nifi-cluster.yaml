@@ -1,0 +1,6 @@
+---
+- hosts: nifi-cluster
+  roles:
+     - java-11
+     - java-8
+     - apache-nifi

@@ -1,0 +1,101 @@
+- name: Kill nifi Process when exists.
+  shell: ps -ef | grep nifi | awk '{print $2}' | xargs kill -9
+  ignore_errors: yes 
+
+- name: create the '{{USER_NIFI}}' user
+  user: name={{USER_NIFI}} append=yes state=present createhome=yes shell=/bin/bash 
+
+- name: Clean directory to put aplications for nifi
+  file:
+    path: "{{DESTINATION_PATH}}"
+    state: absent
+    owner: "{{USER_NIFI}}"
+    group: "{{USER_NIFI}}"
+
+- name: Add directory to put aplications for nifi
+  file:
+    path: "{{DESTINATION_PATH}}"
+    state: directory
+    owner: "{{USER_NIFI}}"
+    group: "{{USER_NIFI}}"
+
+- name: Install nifi app
+  unarchive:
+    src: "{{NIFI_URL}}"
+    dest: "{{DESTINATION_PATH}}"
+    remote_src: true
+
+- name: Install nifi toolkit
+  unarchive:
+    src: "{{NIFI_TOOLKIT_URL}}"
+    dest: "{{DESTINATION_PATH}}"
+    remote_src: true    
+
+- name: Enable nifi SSL
+  shell: "rm -rf *.jks *.json && {{NIFI_TOOLKIT_PATH}}/bin/tls-toolkit.sh server -c {{MASTER_HOST}}{{CLUSTER_DOMAIN}} -t {{TOKEN_TLS}} -p 9995"
+  async: 60           
+  poll: 0
+  when: ansible_hostname == MASTER_HOST
+
+- name: Generate TLS each node.
+  shell: cd {{NIFI_PATH}}/conf/ && {{NIFI_TOOLKIT_PATH}}/bin/tls-toolkit.sh client -c {{MASTER_HOST}}{{CLUSTER_DOMAIN}} -t  {{TOKEN_TLS}}  --subjectAlternativeNames {{ansible_nodename}},{{ansible_nodename}}{{CLUSTER_DOMAIN}} -p 9995
+
+- name: Get Keys Generates keyStorePassword
+  shell: cat {{NIFI_PATH}}/conf/config.json | grep keyStorePassword | awk -F \" '{print $4}'
+  register: KEYSTOREPASSWD
+
+- name: Get Keys Generates keyPassword
+  shell: cat {{NIFI_PATH}}/conf/config.json | grep keyPassword | awk -F \" '{print $4}'
+  register: KEYPASSWORD
+
+- name: Get Keys Generates trustStorePassword
+  shell: cat {{NIFI_PATH}}/conf/config.json | grep trustStorePassword | awk -F \" '{print $4}'
+  register: TRUSTSTOREPASSWORD  
+
+- name: Install application
+  command: "{{NIFI_BIN}}/nifi.sh install dataflow"
+
+- name: Configure zookeper
+  template:
+    src: templates/zookeeper.properties.j2
+    dest: "{{NIFI_PATH}}/conf/zookeeper.properties"
+
+- name: Create Zookeper state dir
+  file:
+    path: "{{NIFI_PATH}}/state/zookeeper"
+    state: directory
+
+- name: Create Zookeper state file
+  file:
+    path: "{{NIFI_PATH}}/state/zookeeper/myid"
+    state: touch
+
+- name: add id zookeper application
+  shell: "hostname | awk  -F- '{print $2}' >  {{NIFI_PATH}}/state/zookeeper/myid"
+
+- name: Configure nifi
+  template:
+    src: templates/nifi.properties.j2
+    dest: "{{NIFI_PATH}}/conf/nifi.properties"
+
+- name: Configure zookeper
+  template:
+    src: templates/state-management.xml.j2
+    dest: "{{NIFI_PATH}}/conf/state-management.xml"
+
+- name: Configure ldap
+  template:
+    src: templates/login-identity-providers.xml.j2
+    dest: "{{NIFI_PATH}}/conf/login-identity-providers.xml"
+
+- name: Clean users and authorization.
+  shell: "rm -rf {{NIFI_PATH}}/conf/users.xml  {{NIFI_PATH}}/conf/authorizations.xml"
+  
+- name: Configure Authorizers
+  template:
+    src: templates/authorizers.xml.j2
+    dest: "{{NIFI_PATH}}/conf/authorizers.xml"
+   
+
+- name: Restart service dataflow, in all cases
+  shell: nohup service dataflow start &
